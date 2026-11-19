@@ -52,9 +52,10 @@ public abstract class AbstractLightWeightMarkupImporterTest
      */
     protected abstract String formatTitle(final String title, int level);
 
-    // [utest -> dsn~md.specification-item-id-format~3]
+    // [utest -> dsn~md.specification-item-id-format~4]
     @CsvSource({
             "at~name~67, at, name, 67",
+            "at~name#67, at, name, 67",
             "longartifacttype~name.with.dots~123456789, longartifacttype, name.with.dots, 123456789",
             "a~b1.c1.d~0, a, b1.c1.d, 0"
     })
@@ -166,6 +167,55 @@ public abstract class AbstractLightWeightMarkupImporterTest
                         .addCoveredId("feat", "item-A", 1)
                         .addCoveredId("feat", "item-B", 2)
                         .addCoveredId("feat", "item-C", 3)
+                        .location(PATH.toString(), 1)
+                        .build()));
+    }
+
+    // [utest -> dsn~md.covers-single-line~1]
+    @Test
+    void testSpecificationItemCoversInline()
+    {
+        assertImport(PATH, """
+                `req~item-a~2`
+
+                Covers: feat~item-b~1
+                """,
+                contains(item()
+                        .id("req", "item-a", 2)
+                        .addCoveredId("feat", "item-b", 1)
+                        .location(PATH.toString(), 1)
+                        .build()));
+    }
+
+    // [utest -> dsn~md.covers-single-line~1]
+    @Test
+    void testSpecificationItemCoversInlineWithBackticks()
+    {
+        assertImport(PATH, """
+                `req~item-a~2`
+
+                Covers: `feat~item-b~1`
+                """,
+                contains(item()
+                        .id("req", "item-a", 2)
+                        .addCoveredId("feat", "item-b", 1)
+                        .location(PATH.toString(), 1)
+                        .build()));
+    }
+
+    // [utest -> dsn~md.covers-single-line~1]
+    @Test
+    void testSpecificationItemCoversInlineMultipleOnSingleLine()
+    {
+        assertImport(PATH, """
+                `req~item-a~2`
+
+                Covers: `feat~item-b~1`, `feat~item-c~2`
+                """,
+                contains(item()
+                        .id("req", "item-a", 2)
+                        .addCoveredId("feat", "item-b", 1)
+                        .addCoveredId("feat", "item-c", 2)
                         .location(PATH.toString(), 1)
                         .build()));
     }
@@ -578,7 +628,7 @@ public abstract class AbstractLightWeightMarkupImporterTest
                         .build()));
     }
 
-    // [impl -> dsn~md.specification-item-id-format~3] with UTF-8
+    // [impl -> dsn~md.specification-item-id-format~4] with UTF-8
     @Test
     void testItemIdSupportsUTF8Characaters()
     {

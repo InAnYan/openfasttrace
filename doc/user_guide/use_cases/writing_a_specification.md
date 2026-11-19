@@ -23,6 +23,12 @@ Let's start with a minimal requirement:
 
 Simple as this. This is already a valid and complete OFT requirement. Of course, you can enrich the requirement with other information, but at the heart of it every requirement is an ID and a description.
 
+When writing an ID without backticks in Markdown, you can use `#` before the revision to avoid Markdown interpreting the two tildes as strikethrough markup:
+
+    req~this-is-the-id#1
+
+This is the same specification item ID as `req~this-is-the-id~1`.
+
 It is mostly a matter of taste whether you prefer your specification items to have a title or not. The same requirement above with a title looks like this:
 
     ### The Requirement Title
@@ -112,7 +118,23 @@ The `Status` keyword takes a single value from `draft`, `proposed`, `approved`, 
 
 ##### `Covers`
 
-The `Covers` keyword states which items are covered by the current specification item. It is followed by a list of items that are covered, each one written on a new line starting with a bullet character (`+`, `*`, or `-`) followed by the referenced specification item id. 
+The `Covers` keyword states which items are covered by the current specification item. It comes in two flavors: as one-liner or as list.
+
+**Variant a) one-line `covers`**
+
+    Covers: feat~rubber-ducky~1
+
+The referenced IDs can optionally be enclosed in backticks:
+
+    Covers: `feat~rubber-ducky~1`
+
+Or with multiple comma-separated items (with or without backticks):
+
+    Covers: `feat~rubber-ducky~1`, `feat~bathtub~1`
+
+**Variant b) as List**
+
+It is followed by a list of items that are covered, each one written on a new line starting with a bullet character (`+`, `*`, or `-`) followed by the referenced specification item id. 
 
 Given the Feature `feat~rubber-ducky~1` exists and needs a `req`. A requirement that covers that feature could be written as
 

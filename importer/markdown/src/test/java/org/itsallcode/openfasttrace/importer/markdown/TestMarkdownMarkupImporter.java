@@ -2,6 +2,7 @@ package org.itsallcode.openfasttrace.importer.markdown;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.itsallcode.matcher.auto.AutoMatcher.contains;
 import static org.itsallcode.openfasttrace.api.core.SpecificationItemId.createId;
@@ -78,15 +79,39 @@ class TestMarkdownMarkupImporter extends AbstractLightWeightMarkupImporterTest
         final SpecificationItem item = importText("""
                 req~subject~1
                 Covers:
-                * req~covered~2
+                * req~covered#2
+                Depends:
+                * req~dependency#3
+                """).get(0);
+
+        assertAll(
+                () -> assertThat(item.getLocatedId().getRange(), is(range(0, 0, 13))),
+                () -> assertThat(item.getLocatedId().getArtifactTypeRange().orElseThrow(), is(range(0, 0, 3))),
+                () -> assertThat(item.getLocatedId().getNameRange().orElseThrow(), is(range(0, 4, 11))),
+                () -> assertThat(item.getLocatedId().getRevisionRange().orElseThrow(), is(range(0, 12, 13))),
+                () -> assertThat(item.getLocatedCoveredIds().get(0).getRange(), is(range(2, 2, 15))),
+                () -> assertThat(item.getLocatedCoveredIds().get(0).getNameRange().orElseThrow(),
+                        is(range(2, 6, 13))),
+                () -> assertThat(item.getLocatedDependOnIds().get(0).getRange(), is(range(4, 2, 18))));
+    }
+
+    // [utest->dsn~located-specification-item-id-text-ranges~1]
+    @Test
+    void testImportsLocatedDeclarationCoverageAndDependencyIdsInline()
+    {
+        final SpecificationItem item = importText("""
+                req~subject~1
+                Covers: req~covered~2, req~covered~3
                 Depends:
                 * req~dependency~3
                 """).get(0);
 
         assertAll(
                 () -> assertThat(item.getLocatedId().getRange(), is(range(0, 0, 13))),
-                () -> assertThat(item.getLocatedCoveredIds().get(0).getRange(), is(range(2, 2, 15))),
-                () -> assertThat(item.getLocatedDependOnIds().get(0).getRange(), is(range(4, 2, 18))));
+                () -> assertThat(item.getLocatedCoveredIds(), hasSize(2)),
+                () -> assertThat(item.getLocatedCoveredIds().get(0).getRange(), is(range(1, 8, 21))),
+                () -> assertThat(item.getLocatedCoveredIds().get(1).getRange(), is(range(1, 23, 36))),
+                () -> assertThat(item.getLocatedDependOnIds().get(0).getRange(), is(range(3, 2, 18))));
     }
 
     private static List<SpecificationItem> importText(final String source)

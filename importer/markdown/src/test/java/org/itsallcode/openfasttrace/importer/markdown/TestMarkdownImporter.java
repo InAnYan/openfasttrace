@@ -15,16 +15,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TestMarkdownImporter
 {
-    // [utest->dsn~md.specification-item-id-format~3]
+    // [utest->dsn~md.specification-item-id-format~4]
     @ParameterizedTest
     @CsvSource(
-    { "req~foo~1<a id=\"req~foo~1\"></a>", "a~b~0", "req~test~1",
+    { "req~foo~1<a id=\"req~foo~1\"></a>", "a~b~0", "req~test~1", "req~test#1",
             "req~test~999", "req~test.requirement~1", "req~test_underscore~1",
             "`req~test1~1`arbitrary text",
             // See https://github.com/itsallcode/openfasttrace/issues/366
@@ -35,7 +36,7 @@ class TestMarkdownImporter
         MarkdownAsserts.assertMatch(MdPattern.ID, text);
     }
 
-    // [utest->dsn~md.specification-item-id-format~3]
+    // [utest->dsn~md.specification-item-id-format~4]
     @ParameterizedTest
     @CsvSource(
     { "test~1", "req-test~1", "req~4test~1", "räq~test~1" })
@@ -93,6 +94,26 @@ class TestMarkdownImporter
     void testIdentifyNonTags(final String text)
     {
         MarkdownAsserts.assertMismatch(MdPattern.TAGS_INT, text);
+    }
+
+    // [utest->dsn~md.covers-single-line~1]
+    @ParameterizedTest
+    @ValueSource(strings = { "Covers: req~foo~1", "Covers: `req~foo~1`", "Covers:req~foo~1",
+            "Covers:  \treq~foo~1 ", "Covers: req~foo~1, req~bar~2", "Covers: `req~foo~1`, `req~bar~2`" })
+    void testIdentifyCoversInline(final String text)
+    {
+        MarkdownAsserts.assertMatch(MdPattern.COVERS_INT, text);
+    }
+
+    // [utest->dsn~md.covers-single-line~1]
+    @ParameterizedTest
+    @ValueSource(strings = { "Covers:", "#Covers: req~foo~1", " Covers: req~foo~1", "Covers: abc",
+            "Covers; req~foo~1", "Covers req~foo~1", "Covers: req~foo~1 req~bar~2",
+            "Covers: req~foo~1; req~bar~2", "Covers: someone~forgot~1a~comma-1",
+            "Covers: `req~foo~1", "Covers: req~foo~1`" })
+    void testIdentifyNonCoversInline(final String text)
+    {
+        MarkdownAsserts.assertMismatch(MdPattern.COVERS_INT, text);
     }
 
     @Test
